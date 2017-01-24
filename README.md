@@ -9,28 +9,28 @@
 	spring.activemq.brokerUrl=tcp://127.0.0.1:61616
 	spring.activemq.user=admin
 	spring.activemq.password=admin
-##3.消息队列实例化配置ActiveMQQueue
-	@Configuration
-	public class MQConfig {
-		@Bean
-		public Queue queue() {
-			return new ActiveMQQueue("activemq.queue");
-		}
-	}
-	//或者用静态实例
-	//public static Queue queue2 = new ActiveMQQueue("activemq.queue");
-##4.消息生产者配置(消息内容可以jsonString格式，传更多参数)
+##3.消息生产者配置(如果传更多参数，消息内容可以jsonString格式，也可以用序列化对象传参)
+	public static final String BUSINESS1 = "activemq.queue";
 	@Autowired
-	private JmsMessagingTemplate jmsMessagingTemplate;
-	@Autowired
-	private Queue queue;
+	private JmsMessagingTemplate jmsMessagingTemplate;// 注入消息模板实例
 	@RequestMapping(value = "/")
-	public String home(HttpServletResponse response) throws IOException {
-		jmsMessagingTemplate.convertAndSend(queue, "hi,activeMQ");
+	public String home() throws IOException {
+		Map<String, String> msg = new HashMap<>();
+		msg.put("key", "hi,activeMQ");
+		jmsMessagingTemplate.convertAndSend(QueueList.BUSINESS1, JSON.toJSONString(msg));
 		return "hello springboot";
 	}
-##5.消息消费者配置（即消息队列监听JmsListener）
-	@JmsListener(destination = "activemq.queue")
-	public void receiveQueue(String text) {
-		System.out.println("##activemq.queue#" + text);
+##4.消息消费者配置（即配置消息队列监听JmsListener）
+	@JmsListener(destination = QueueList.BUSINESS2)
+	public void receiveQueueObj(String txtMsg) {
+		// 消息内容转为具体对象，数据类型更明晰
+		ParamVo paramVo = JSON.parseObject(txtMsg, ParamVo.class);// 推荐该转换方案
+		System.out.println("##activemq.queue#" + JSON.toJSONString(paramVo));
 	}
+	@JmsListener(destination = QueueList.BUSINESS1)
+	public void receiveQueue(String txtMsg) {
+		// 消息内容转为Map<String,Object>
+		Map<String, Object> map = JSON.parseObject(txtMsg);
+		System.out.println("##activemq.queue#" + map);
+	}
+	
