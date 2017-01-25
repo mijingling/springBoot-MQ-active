@@ -1,3 +1,4 @@
+#springboot+activemq集成
 ##1.在pom.xml中引入相关jar包（version至少1.4.0以上）
 	<dependency>
 		<groupId>org.springframework.boot</groupId>
@@ -33,4 +34,8 @@
 		Map<String, Object> map = JSON.parseObject(txtMsg);
 		System.out.println("##activemq.queue#" + map);
 	}
-	
+##5.Demo测试
+	a.启动activemq服务
+	b.启动springBoot服务(如果activemq连接配置不同，需要在application.properties中调整)
+	c.访问http://localhost:1010 (解析接收消息为map)
+	或者 http://localhost:1010/2 (解析接收消息为Vo对象)
